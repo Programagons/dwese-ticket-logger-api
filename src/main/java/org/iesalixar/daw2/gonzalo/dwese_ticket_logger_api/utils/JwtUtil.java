@@ -3,16 +3,23 @@ package org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.core.internal.Function;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.security.KeyPair;
 import java.util.Date;
 import java.util.List;
 
 @Component
 public class JwtUtil {
+
+    @Autowired
+    private KeyPair jwtKeyPair;
+
+    private static final long JWT_EXPIRATION = 36000000; // 1 hioora
 
     /**
      * Clave secreta para firmar y verificar el token JWT.
@@ -60,7 +67,7 @@ public class JwtUtil {
      */
     public Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey()) // Configura la clave para verificar la firma
+                .verifyWith(jwtKeyPair.getPublic()) // Configura la clave para verificar la firma
                 .build()
                 .parseSignedClaims(token) // Verifica el token y lo parsea
                 .getPayload(); // Devuelve el cuerpo del JWT (claims)
@@ -91,8 +98,8 @@ public class JwtUtil {
                 .subject(username) // Configura el claim "sub" (nombre de usuario)
                 .claim("roles", roles) // Incluye los roles como claim adicional
                 .issuedAt(new Date()) // Fecha de emisión del token
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // Expira en 1 hora
-                .signWith(getSigningKey()) // Firma el token con la clave secreta
+                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION)) // Expira en 1 hora
+                .signWith(jwtKeyPair.getPrivate(), Jwts.SIG.RS256) // Firma el token con la clave secreta
                 .compact(); // Genera el token en formato JWT
     }
 
@@ -106,10 +113,14 @@ public class JwtUtil {
      * @param username el nombre de usuario esperado.
      * @return true si el token es válido, false en caso contrario.
      */
-    public boolean validateToken(String token, String username) {
 
-        final String extractedUsername = extractUsername(token); // Extrae el nombre de usuario del token
-        return extractedUsername.equals(username) && !isTokenExpired(token); // Verifica usuario y expiración
+    public boolean validateToken (String token, String username) {
+        Claims claims = Jwts.parser()
+                .verifyWith(jwtKeyPair.getPublic())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return username.equals(claims.getSubject()) && !isTokenExpired(claims);
 
     }
 
@@ -118,11 +129,12 @@ public class JwtUtil {
      * Verifica si un token JWT ha expirado.
      * Extrae el claim "exp" (fecha de expiración) y lo compara con la fecha actual.
      *
-     * @param token el token JWT.
+     * @param claims el token JWT.
      * @return true si el token ha expirado, false si aún es válido.
      */
-    private boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+    private boolean isTokenExpired(Claims claims) {
+        return claims.getExpiration().before(new Date());
+        }
 
     }
 
