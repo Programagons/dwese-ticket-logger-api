@@ -2,10 +2,10 @@ package org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.config;
 
 
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.services.CustomUserDetailsService;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -16,9 +16,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configura la seguridad de la aplicación, definiendo autenticación y autorización
@@ -29,6 +30,7 @@ import java.util.logging.Logger;
 @EnableMethodSecurity(prePostEnabled = true) // Activa la seguridad basada en métodos
 public class SecurityConfig {
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
     @Autowired
     private CustomUserDetailsService userDetailsService;
     @Autowired
@@ -60,6 +62,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll() // Endpoints públicos
                         .anyRequest().authenticated() // El resto requiere autenticación
                 )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Filtro JWT
         return http.build();
     }
@@ -74,8 +79,7 @@ public class SecurityConfig {
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
 
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -88,9 +92,9 @@ public class SecurityConfig {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        Logger.info("Entrando en el método passwordEncoder");
+        logger.info("Entrando en el método passwordEncoder");
         PasswordEncoder encoder = new BCryptPasswordEncoder();
-        Logger.info("Saliendo del método passwordEncoder");
+        logger.info("Saliendo del método passwordEncoder");
         return encoder;
     }
 

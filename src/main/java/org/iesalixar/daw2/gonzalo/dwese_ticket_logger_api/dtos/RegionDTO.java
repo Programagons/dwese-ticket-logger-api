@@ -36,4 +36,7 @@ public class RegionDTO {
      */
     private String name;
 
+
+    private String image;
+
 }

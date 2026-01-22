@@ -17,7 +17,7 @@ public class KeyConfig {
     private String keystorePath;
     @Value("${jwt.keystore.password}") // Contraseña del keystore
     private String keystorePassword;
-    @Value("${jwt.keystore.alias)") // Alias del par de claves
+    @Value("${jwt.keystore.alias}") // Alias del par de claves
     private String keystoreAlias;
 
 

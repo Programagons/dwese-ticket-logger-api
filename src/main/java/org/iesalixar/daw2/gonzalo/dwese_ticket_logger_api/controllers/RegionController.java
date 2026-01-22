@@ -129,17 +129,20 @@ public class RegionController {
      * Crea una nueva región en la base de datos.
      *
      * @param regionCreateDTO Objeto JSON que representa la nueva región.
-     * @param locale Idioma de los mensajes de error.
      * @return ResponseEntity con la región creada o un mensaje de error.
      */
-    @PostMapping
-    public ResponseEntity<?> createRegion(@Valid @RequestBody RegionCreateDTO regionCreateDTO, Locale locale){
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<?> createRegion(@Valid @ModelAttribute RegionCreateDTO regionCreateDTO){
         logger.info("Insertando nueva región con código {}", regionCreateDTO.getCode());
         try {
-            RegionDTO createdRegion = regionService.createRegion(regionCreateDTO, locale);
+            RegionDTO createdRegion = regionService.createRegion(regionCreateDTO, Locale.FRENCH);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdRegion);
         } catch (IllegalArgumentException e) {
+            logger.warn("Error al crear la categoría: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RuntimeException e) {
+            logger.error("Error al guardar la imagen: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al guardar la imagen.");
         }catch(Exception e) {
             logger.error("Error al crear la región: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la región.");
@@ -150,21 +153,24 @@ public class RegionController {
      * Actualiza una región existente por su ID.
      *
      * @param id ID de la región a actualizar.
-     * @param regionCreateDTO Objeto JSON con los nuevos datos.
+     * @param regionCreateDTO DTO con los datos para actualizar la categoría.
      * @param locale Idioma de los mensajes de error.
      * @return ResponseEntity con la región actualizada o un mensaje de error.
      *
      */
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
     public ResponseEntity<?> updateRegion (@PathVariable Long id, @Valid @RequestBody RegionCreateDTO regionCreateDTO, Locale locale){
         logger.info("Actualizando región con ID {}", id);
         try {
             RegionDTO updatedRegion = regionService.updateRegion(id, regionCreateDTO, locale);
             return ResponseEntity.ok(updatedRegion);
         } catch (IllegalArgumentException e) {
+            logger.warn("Error al actualizar la región con ID {}: {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-
+        }catch (RuntimeException e){
+            logger.error("Error al guardar la imagen para la región con ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al guardar la imagen.");
         } catch (Exception e) {
             logger.error("Error al actualizar la región con ID {}: {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la región.");
@@ -180,10 +186,12 @@ public class RegionController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRegion(@PathVariable Long id){
+        logger.info("Eliminando región con ID {}", id);
         try {
             regionService.deleteRegion(id);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok("Región eliminada con éxito.");
         } catch (IllegalArgumentException e) {
+            logger.warn("Error al eliminar la región con ID {}: {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al eliminar la región con ID {}: {}", id, e.getMessage());

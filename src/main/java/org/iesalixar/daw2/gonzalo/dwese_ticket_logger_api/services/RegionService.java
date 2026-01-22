@@ -32,6 +32,8 @@ public class RegionService {
 
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private FileStorageService fileStorageService;
 
     /**
      * Obtiene todas las regiones de la base de datos y las convierte a DTOs.
@@ -89,9 +91,21 @@ public class RegionService {
             throw new IllegalArgumentException(errorMessage);
         }
 
+        // Procesar la imagen si se proporciona
+        String fileName = null;
+        if (regionCreateDTO.getImageFile() != null && !regionCreateDTO.getImageFile().isEmpty()){
+            fileName = fileStorageService.saveFile(regionCreateDTO.getImageFile());
+            if (fileName == null) {
+                throw new RuntimeException("Error al guardar la imagen.");
+            }
+        }
+
         // Se convierte a Entity para almacenar en la base de datos
         Region region = regionMapper.toEntity(regionCreateDTO);
+        region.setImage(fileName);
+
         Region savedRegion = regionRepository.save(region);
+        logger.info("Región creada exitósamente con ID {}", savedRegion.getId());
         // Se devuelve el DTO
         return regionMapper.toDTO(savedRegion);
     }
@@ -107,6 +121,8 @@ public class RegionService {
      */
 
     public RegionDTO updateRegion(Long id, RegionCreateDTO regionCreateDTO, Locale locale) {
+        logger.info("Actualizando región con ID {}", id);
+        // Buscar la región existente
         Region existingRegion = regionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("La región no existe."));
 
@@ -115,9 +131,22 @@ public class RegionService {
             throw new IllegalArgumentException(errorMessage);
         }
 
+        // Procesar la imagen si se proporciona
+        String fileName = existingRegion.getImage(); // Conservar la imagen existente por defecto.
+        if (regionCreateDTO.getImageFile() != null && !regionCreateDTO.getImageFile().isEmpty()){
+            fileName = fileStorageService.saveFile(regionCreateDTO.getImageFile());
+            if (fileName == null){
+                throw new RuntimeException("Error al guardar la imagen.");
+            }
+        }
+
+        // Actualizar los datos de la categoría
         existingRegion.setCode(regionCreateDTO.getCode());
         existingRegion.setName(regionCreateDTO.getName());
+        existingRegion.setImage(fileName);
+        // Guardar los cambios
         Region updatedRegion = regionRepository.save(existingRegion);
+        logger.info("Región con ID {} actualizada exitósamente", updatedRegion.getId());
 
         return regionMapper.toDTO(updatedRegion);
     }
@@ -130,10 +159,20 @@ public class RegionService {
      */
 
     public void deleteRegion(Long id) {
-        if(!regionRepository.existsById(id)){
-            throw new IllegalArgumentException("La región no existe.");
+        logger.info("Buscando region con ID {}", id);
+
+        // Buscar la región
+        Region region = regionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("La región no existe."));
+
+        // Eliminar la imagen asociada si existe
+        if (region.getImage() != null && !region.getImage().isEmpty()){
+            fileStorageService.deleteFile(region.getImage());
+            logger.info("Imagen asociada a la región con ID {} eliminada.", id);
         }
 
+        // Eliminar la región
         regionRepository.deleteById(id);
+        logger.info("Región con ID {} eliminada exitósamente.", id);
     }
 }
