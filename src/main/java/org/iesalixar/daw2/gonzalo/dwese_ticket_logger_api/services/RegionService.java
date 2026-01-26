@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -36,25 +38,26 @@ public class RegionService {
     private FileStorageService fileStorageService;
 
     /**
-     * Obtiene todas las regiones de la base de datos y las convierte a DTOs.
+     * Obtiene todas las regiones con paginación y las convierte en una página de RegionDTO.
      *
-     * @return Lista de objetos 'RegionDTO' representando todas las regiones.
+     * @param pageable Objeto de paginación que define la página, el tamaño y la ordenación.
+     * @return Página de RegionDTO
      *
      */
 
-    public List<RegionDTO> getAllRegions() {
-        try {
-            logger.info("Obteniendo todas las regiones...");
-            List<Region> regions = regionRepository.findAll();
-            logger.info("Se encontraron {} regiones.", regions.size());
-            return regions.stream()
-                    .map(regionMapper::toDTO)
-                    .toList();
+    public Page<RegionDTO> getAllRegions(Pageable pageable) {
+        logger.info("Solicitando todas las regiones con paginación: página {}, tamaño{}",
+            pageable.getPageNumber(), pageable.getPageSize());
+        try{
+            Page<Region> regions = regionRepository.findAll(pageable);
+            logger.info("Se han encontrado {} regiones en la página actual.", regions.getNumberOfElements());
+            return regions.map(regionMapper::toDTO);
         } catch (Exception e) {
-            logger.error("Error al obtener todas las regiones: {}", e.getMessage());
-            throw new RuntimeException("Error al obtener todas las regiones.", e);
+            logger.error("Error al obtener la lista paginada de regiones: {}", e.getMessage());
+            throw e;
         }
     }
+
 
     /**
      * Busca una región específica por su ID.
@@ -105,7 +108,7 @@ public class RegionService {
         region.setImage(fileName);
 
         Region savedRegion = regionRepository.save(region);
-        logger.info("Región creada exitósamente con ID {}", savedRegion.getId());
+        logger.info("Región creada exitosamente con ID {}", savedRegion.getId());
         // Se devuelve el DTO
         return regionMapper.toDTO(savedRegion);
     }
@@ -146,7 +149,7 @@ public class RegionService {
         existingRegion.setImage(fileName);
         // Guardar los cambios
         Region updatedRegion = regionRepository.save(existingRegion);
-        logger.info("Región con ID {} actualizada exitósamente", updatedRegion.getId());
+        logger.info("Región con ID {} actualizada exitosamente", updatedRegion.getId());
 
         return regionMapper.toDTO(updatedRegion);
     }
@@ -173,6 +176,6 @@ public class RegionService {
 
         // Eliminar la región
         regionRepository.deleteById(id);
-        logger.info("Región con ID {} eliminada exitósamente.", id);
+        logger.info("Región con ID {} eliminada exitosamente.", id);
     }
 }

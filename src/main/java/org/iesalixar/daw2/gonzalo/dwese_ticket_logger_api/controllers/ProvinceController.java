@@ -141,7 +141,7 @@ public class ProvinceController {
             }
             // Guardar la nueva provincia
             Province savedProvince = provinceRepository.save(province);
-            logger.info("Provincia creada exitósamente con ID {}", savedProvince.getId());
+            logger.info("Provincia creada exitosamente con ID {}", savedProvince.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(savedProvince);
         } catch (Exception e) {
             logger.error("Error al crear la provincia: {}", e.getMessage());
@@ -178,7 +178,7 @@ public class ProvinceController {
             //Actualizar la provincia
             province.setId(id); // Asegurarse de que el ID no cambie
             Province updateProvince =  provinceRepository.save(province);
-            logger.info("Provincia con ID {} actualizada exitósamente.", id);
+            logger.info("Provincia con ID {} actualizada exitosamente.", id);
             return ResponseEntity.ok(updateProvince);
         } catch (Exception e) {
             logger.error("Error al actualizar la provincia con ID {}: {}", id, e.getMessage());
@@ -204,7 +204,7 @@ public class ProvinceController {
             }
             // Eliminar la provincia
             provinceRepository.deleteById(id);
-            logger.info("Provincia con ID {} eliinada exitósamente.", id);
+            logger.info("Provincia con ID {} eliinada exitosamente.", id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             logger.error("Error al eliminar la provincia con ID {}: {}", id, e.getMessage());

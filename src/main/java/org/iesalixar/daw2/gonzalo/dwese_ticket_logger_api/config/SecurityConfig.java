@@ -59,7 +59,7 @@ public class SecurityConfig {
                                 "/api/supermarkets",
                                 "/api/locations",
                                 "/api/categories").hasRole("MANAGER") // Solo MANAGER
-                        .requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll() // Endpoints públicos
+                        .requestMatchers("/api/v1/authenticate", "/api/v1/register","/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs", "/api-docs/**").permitAll() // Endpoints públicos
                         .anyRequest().authenticated() // El resto requiere autenticación
                 )
                 .exceptionHandling(exception -> exception
