@@ -94,6 +94,7 @@ public class RegionService {
             throw new IllegalArgumentException(errorMessage);
         }
 
+
         // Procesar la imagen si se proporciona
         String fileName = null;
         if (regionCreateDTO.getImageFile() != null && !regionCreateDTO.getImageFile().isEmpty()){
