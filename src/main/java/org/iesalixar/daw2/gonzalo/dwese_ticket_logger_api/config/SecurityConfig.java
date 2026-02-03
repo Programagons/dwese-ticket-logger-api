@@ -21,6 +21,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 /**
  * Configura la seguridad de la aplicación, definiendo autenticación y autorización
  * para diferentes roles de usuario, y gestionando la política de sesiones.
@@ -48,6 +50,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(withDefaults())
                 .csrf(csrf -> csrf.disable()) // Las APIs REST no suelen necesitar CSRF
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sin sesiones
                 .authorizeHttpRequests(auth -> auth
