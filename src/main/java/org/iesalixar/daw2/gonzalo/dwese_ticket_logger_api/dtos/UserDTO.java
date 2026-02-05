@@ -19,13 +19,8 @@ public class UserDTO {
 
     private Long id;
     private String username;
-    private String password;
-    private boolean enabled;
     private String firstName;
     private String lastName;
     private String image;
-    private LocalDateTime createdDate;
-    private LocalDateTime lastModifiedDate;
-    private LocalDateTime lastPasswordChangeDate;
 
 }
