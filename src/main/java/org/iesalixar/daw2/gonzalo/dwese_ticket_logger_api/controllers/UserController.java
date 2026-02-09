@@ -1,8 +1,10 @@
 package org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.controllers;
 
 import io.jsonwebtoken.Claims;
+import jakarta.validation.constraints.NotNull;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.dtos.UserDTO;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.services.UserService;
+import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.utils.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,12 +30,17 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
 
     @GetMapping
-    public ResponseEntity<UserDTO> getUser(Authentication authentication){
+    public ResponseEntity<@NotNull UserDTO> getUser(@RequestHeader("Authorization")String tokenheader){
         logger.info("Solicitando la información del usuario logueado");
-        Claims claims = (Claims) authentication.getDetails();
-        Long id = (Long) claims.get("id");
+
+        String token = tokenheader.replace("Bearer", "");
+
+        Long id = jwtUtil.extractClaim(token,claims -> claims.get("id", Long.class));
 
         try {
             UserDTO userDTO = userService.getUserById(id);
