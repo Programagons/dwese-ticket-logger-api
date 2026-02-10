@@ -50,6 +50,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .securityMatcher("/api/**") // Solo protege rutas que empiezan con "/api/"
                 .cors(withDefaults())
                 .csrf(csrf -> csrf.disable()) // Las APIs REST no suelen necesitar CSRF
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sin sesiones
