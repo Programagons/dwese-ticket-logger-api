@@ -66,8 +66,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/authenticate", "/api/v1/register","/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs", "/api-docs/**").permitAll() // Endpoints públicos
                         .anyRequest().authenticated() // El resto requiere autenticación
                 )
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Filtro JWT
         return http.build();

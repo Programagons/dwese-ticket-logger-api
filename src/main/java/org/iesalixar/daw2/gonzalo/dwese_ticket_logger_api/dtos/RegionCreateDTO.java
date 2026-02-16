@@ -41,5 +41,5 @@ public class RegionCreateDTO {
      *
      */
 
-    private MultipartFile imageFile;
+    //private MultipartFile imageFile;
 }

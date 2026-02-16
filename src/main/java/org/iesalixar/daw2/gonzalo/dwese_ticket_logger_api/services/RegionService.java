@@ -97,12 +97,12 @@ public class RegionService {
 
         // Procesar la imagen si se proporciona
         String fileName = null;
-        if (regionCreateDTO.getImageFile() != null && !regionCreateDTO.getImageFile().isEmpty()){
+       /*if (regionCreateDTO.getImageFile() != null && !regionCreateDTO.getImageFile().isEmpty()){
             fileName = fileStorageService.saveFile(regionCreateDTO.getImageFile());
             if (fileName == null) {
                 throw new RuntimeException("Error al guardar la imagen.");
             }
-        }
+        }*/
 
         // Se convierte a Entity para almacenar en la base de datos
         Region region = regionMapper.toEntity(regionCreateDTO);
@@ -137,12 +137,12 @@ public class RegionService {
 
         // Procesar la imagen si se proporciona
         String fileName = existingRegion.getImage(); // Conservar la imagen existente por defecto.
-        if (regionCreateDTO.getImageFile() != null && !regionCreateDTO.getImageFile().isEmpty()){
+        /*if (regionCreateDTO.getImageFile() != null && !regionCreateDTO.getImageFile().isEmpty()){
             fileName = fileStorageService.saveFile(regionCreateDTO.getImageFile());
             if (fileName == null){
                 throw new RuntimeException("Error al guardar la imagen.");
             }
-        }
+        }*/
 
         // Actualizar los datos de la categoría
         existingRegion.setCode(regionCreateDTO.getCode());

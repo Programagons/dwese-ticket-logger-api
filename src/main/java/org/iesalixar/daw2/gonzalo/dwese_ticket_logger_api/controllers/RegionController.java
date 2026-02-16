@@ -161,7 +161,7 @@ public class RegionController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping()
     public ResponseEntity<?> createRegion(@Valid @ModelAttribute RegionCreateDTO regionCreateDTO){
         logger.info("Insertando nueva región con código {}", regionCreateDTO.getCode());
         try {
