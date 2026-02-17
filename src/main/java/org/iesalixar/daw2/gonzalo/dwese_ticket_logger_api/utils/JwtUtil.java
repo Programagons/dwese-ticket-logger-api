@@ -19,7 +19,8 @@ public class JwtUtil {
     @Autowired
     private KeyPair jwtKeyPair;
 
-    private static final long JWT_EXPIRATION = 36000000; // 1 hioora
+    private static final long JWT_EXPIRATION = 36000000; // 10 hora
+    private static final long JWT_EXPIRATION_TOKEN = 300000; // 1 minuto
 
     /**
      * Clave secreta para firmar y verificar el token JWT.
@@ -94,13 +95,13 @@ public class JwtUtil {
      * @param username el nombre del usuario para el cual se genera el token.
      * @param roles    la lista de roles del usuario (por ejemplo, ["USER", "ADMIN"]). * @return el token JWT generado.
      */
-    public String generateToken(String username, List<String> roles, Long id) {
+    public String generateToken(String username, List<String> roles, Long id, boolean twoFactor) {
         return Jwts.builder()
                 .subject(username) // Configura el claim "sub" (nombre de usuario)
                 .claim("roles", roles) // Incluye los roles como claim adicional
                 .claim("id", id) // Incluye el id
                 .issuedAt(new Date()) // Fecha de emisión del token
-                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION)) // Expira en 1 hora
+                .expiration(new Date(System.currentTimeMillis() + (twoFactor ? JWT_EXPIRATION_TOKEN : JWT_EXPIRATION))) // Expira en 1 hora o si usa el token de two factor en 10 min
                 .signWith(jwtKeyPair.getPrivate(), Jwts.SIG.RS256) // Firma el token con la clave secreta
                 .compact(); // Genera el token en formato JWT
     }

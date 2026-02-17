@@ -2,10 +2,16 @@ package org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.controllers;
 
 
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.dtos.AuthRequestDTO;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.dtos.AuthResponseDTO;
+import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.dtos.TwoFactorDTO;
+import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.services.EmailService;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.services.UserService;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.utils.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +30,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1")
 public class AuthenticationController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
+
     @Autowired
     private AuthenticationManager authenticationManager; // Maneja la lógica de autenticación
     @Autowired
     private JwtUtil jwtUtil; // Utilidad personalizada para manejar tokens JWT
     @Autowired
     private UserService userService;
+    @Autowired
+    private EmailService emailService;
 
 
     @PostMapping("/authenticate")
@@ -38,7 +48,7 @@ public class AuthenticationController {
             // Validar datos de entrada (opcional si no usas validación adicional en DTO)
             if (authRequest.getUsername() == null || authRequest.getPassword() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new AuthResponseDTO(null, "El nombre de usuario y la contraseña son obligatorios."));
+                        .body(new AuthResponseDTO(null, "El nombre de usuario y la contraseña son obligatorios.", false));
             }
             // Intenta autenticar al usuario con las credenciales proporcionadas
             Authentication authentication = authenticationManager.authenticate(
@@ -50,17 +60,21 @@ public class AuthenticationController {
                     .map(authority -> authority.getAuthority()) // Convierte cada autoridad en su representación de texto
                     .toList();
             // Genera un token JWT para el usuario autenticado, incluyendo sus roles
-            String token = jwtUtil.generateToken(username, roles, userService.getIdByUsername(username));
+            Long id = userService.getIdByUsername(username);
+            String token = jwtUtil.generateToken(username, roles, id, true);
+            String code = generateCode();
+            userService.saveCode(code, id);
             // Retorna una respuesta con el token JWT y un mensaje de éxito
-            return ResponseEntity.ok(new AuthResponseDTO(token, "Authentication successful"));
+            emailService.sendEmail("gpulcab051@g.educaand.es", "Primer email", "hola mundo");
+            return ResponseEntity.ok(new AuthResponseDTO(token, "Authentication successful", true));
         } catch (BadCredentialsException e) {
             // Manejo de credenciales inválidas
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new AuthResponseDTO(null, "Credenciales inválidas. Por favor, verifica tus datos."));
+                    .body(new AuthResponseDTO(null, "Credenciales inválidas. Por favor, verifica tus datos.", false));
         } catch (Exception e) {
             // Manejo de cualquier otro error
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new AuthResponseDTO(null, "Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde."));
+                    .body(new AuthResponseDTO(null, "Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde.", false));
         }
     }
 
@@ -74,9 +88,48 @@ public class AuthenticationController {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<AuthResponseDTO> handleException(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new AuthResponseDTO(null, "Ocurrió un error inesperado:" + e.getMessage()));
+                .body(new AuthResponseDTO(null, "Ocurrió un error inesperado:" + e.getMessage(), false));
 
     }
+
+
+    private String generateCode(){
+        return RandomStringUtils.randomNumeric(6);
+    }
+
+
+    private void generateEmail(String email, String code){
+        try{
+            emailService.sendEmail(email, "Código de autenticación", "Su código de autenticación es: " + code);
+
+        }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
+        }
+    }
+
+    private void saveCode(){
+
+    }
+
+    @PostMapping("/twofactor")
+    public ResponseEntity<AuthResponseDTO> twofactor(@Valid @RequestBody TwoFactorDTO twoFactorDTO) {
+        logger.info("Iniciando two-factor authentication" + twoFactorDTO.toString());
+
+        // 1. Limpiamos el prefijo "Bearer "
+        String token = tokenHeader.replace("Bearer ", "");
+
+        // 2 Usamos el servicio JWT para extraer el ID
+        Long id = jwtUtil.extractClaim(tokem, claims -> claims.get("id", Long.class));
+
+        User user = userService.getUserById(id);
+
+        if (StringUtils.equals(code, user.getCode()))
+
+    }
+
+
+
+
 
 }
 

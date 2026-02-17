@@ -67,6 +67,10 @@ import java.util.Set;
             @Size(max = 255, message = "{msg.user.image.size}")
             @Column(name = "image", length = 255)
             private String image;
+            // Campo para la autenticación
+            @Column(name = "code")
+            private String code;
+
             // Fecha de creación del registro.
             @CreatedDate
             @Column(name = "created_date", updatable = false)

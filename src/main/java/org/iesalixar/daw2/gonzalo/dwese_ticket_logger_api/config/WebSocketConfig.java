@@ -109,7 +109,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         logger.warn("❌ Token inválido en WebSocket para el usuario: " + username);
                     }
                 } else {
-                    logger.warn("⚠️ No se encontró un token en la conexión WebSocket.");
+                    logger.warn("⚠️ No se encontró un token en la conexión WebSocket. Rechazando conexión.");
                 }
 
                 return message;

@@ -22,7 +22,7 @@ public class UserService {
         return userRepository.getIdByUsername(username);
     }
 
-    public UserDTO getUserById (Long id){
+    public UserDTO getUserDTOById (Long id){
     Optional <User> userOpt = userRepository.findById(id);
 
     if (userOpt.isPresent()){
@@ -30,5 +30,28 @@ public class UserService {
     }
     throw new RuntimeException("El usuario con identificador " + id + " no existe");
     }
+
+
+    public void saveCode(String code, Long id){
+        if (id != null){
+            Optional <User> userOpt = userRepository.findById(id);
+            if (userOpt.isPresent()){
+                User user = userOpt.get();
+                user.setCode(code);
+                userRepository.save(user);
+            }
+        }
+    }
+
+    public User getUserById (Long id){
+        Optional <User> userOpt = userRepository.findById(id);
+
+        if (userOpt.isPresent()){
+            return userOpt.get();
+        }
+        throw new RuntimeException("El usuario con identificador " + id + " no existe");
+    }
+
+
 }
 
