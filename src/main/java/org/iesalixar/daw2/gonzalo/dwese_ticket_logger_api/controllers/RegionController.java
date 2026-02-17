@@ -162,7 +162,7 @@ public class RegionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping()
-    public ResponseEntity<?> createRegion(@Valid @ModelAttribute RegionCreateDTO regionCreateDTO){
+    public ResponseEntity<?> createRegion(@Valid @RequestBody RegionCreateDTO regionCreateDTO){
         logger.info("Insertando nueva región con código {}", regionCreateDTO.getCode());
         try {
             RegionDTO createdRegion = regionService.createRegion(regionCreateDTO, Locale.FRENCH);
@@ -197,7 +197,7 @@ public class RegionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping(value = "/{id}", consumes = "multipart/form-data")
-    public ResponseEntity<?> updateRegion (@PathVariable Long id, @Valid @ModelAttribute RegionCreateDTO regionCreateDTO, Locale locale){
+    public ResponseEntity<?> updateRegion (@PathVariable Long id, @Valid @RequestBody RegionCreateDTO regionCreateDTO, Locale locale){
         logger.info("Actualizando región con ID {}", id);
         try {
             RegionDTO updatedRegion = regionService.updateRegion(id, regionCreateDTO, locale);
