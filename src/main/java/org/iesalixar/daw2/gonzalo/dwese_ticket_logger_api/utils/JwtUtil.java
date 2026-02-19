@@ -100,6 +100,7 @@ public class JwtUtil {
                 .subject(username) // Configura el claim "sub" (nombre de usuario)
                 .claim("roles", roles) // Incluye los roles como claim adicional
                 .claim("id", id) // Incluye el id
+                .claim("twoFactor", twoFactor)
                 .issuedAt(new Date()) // Fecha de emisión del token
                 .expiration(new Date(System.currentTimeMillis() + (twoFactor ? JWT_EXPIRATION_TOKEN : JWT_EXPIRATION))) // Expira en 1 hora o si usa el token de two factor en 10 min
                 .signWith(jwtKeyPair.getPrivate(), Jwts.SIG.RS256) // Firma el token con la clave secreta

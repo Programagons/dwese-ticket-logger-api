@@ -52,6 +52,14 @@ public class UserService {
         throw new RuntimeException("El usuario con identificador " + id + " no existe");
     }
 
+    public void clear2FactorCode(Long id) {
+        userRepository.findById(id).ifPresent(user -> {
+            user.setCode(null);
+            userRepository.save(user);
+        });
+    }
+
+
 
 }
 

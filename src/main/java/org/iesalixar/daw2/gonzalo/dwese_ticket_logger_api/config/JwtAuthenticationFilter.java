@@ -68,6 +68,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 8. Extraer los claims del token (como los roles)
                 Claims claims = jwtUtil.extractAllClaims(jwt);
 
+                // Lógica de bloqueo
+                Boolean is2FARequest = claims.get("twoFactor", Boolean.class);
+
+                final String requestPath = request.getServletPath(); // [NUEVO] Obtener la ruta actual
+
+                // Si el 2FA no está completo y el usuario NO está yendo al endpoint de validación:
+                if (Boolean.TRUE.equals(is2FARequest) && !requestPath.contains("/twofactor")) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Pendiente completar segundo factor de autenticacion.\"}");
+                    return;
+                }
+
+
+
                 // 9. Extraer los roles del claim "roles" y convertirlos en GrantedAuthority
                 List<String> roles = claims.get("roles", List.class); // Obtiene la lista de roles del token
                 List<SimpleGrantedAuthority> authorities = roles.stream()

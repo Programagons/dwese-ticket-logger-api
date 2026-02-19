@@ -43,7 +43,7 @@ public class UserController {
         Long id = jwtUtil.extractClaim(token,claims -> claims.get("id", Long.class));
 
         try {
-            UserDTO userDTO = userService.getUserById(id);
+            UserDTO userDTO = userService.getUserDTOById(id);
             logger.info("Se ha encontrado el usuario con identificador {}.", id);
             return ResponseEntity.ok(userDTO);
         } catch (Exception e) {

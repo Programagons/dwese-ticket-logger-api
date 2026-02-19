@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.dtos.AuthRequestDTO;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.dtos.AuthResponseDTO;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.dtos.TwoFactorDTO;
+import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.entities.Role;
+import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.entities.User;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.services.EmailService;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.services.UserService;
 import org.iesalixar.daw2.gonzalo.dwese_ticket_logger_api.utils.JwtUtil;
@@ -112,20 +114,37 @@ public class AuthenticationController {
     }
 
     @PostMapping("/twofactor")
-    public ResponseEntity<AuthResponseDTO> twofactor(@Valid @RequestBody TwoFactorDTO twoFactorDTO) {
+    public ResponseEntity<AuthResponseDTO> twofactor(@Valid @RequestBody TwoFactorDTO twoFactorDTO, @RequestHeader("Authorization") String tokenHeader) {
         logger.info("Iniciando two-factor authentication" + twoFactorDTO.toString());
+
 
         // 1. Limpiamos el prefijo "Bearer "
         String token = tokenHeader.replace("Bearer ", "");
 
-        // 2 Usamos el servicio JWT para extraer el ID
-        Long id = jwtUtil.extractClaim(tokem, claims -> claims.get("id", Long.class));
 
-        User user = userService.getUserById(id);
+        // 2. Usamos tu servicio JWT/Utilidad para extraer el ID
+        Long id = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
 
-        if (StringUtils.equals(code, user.getCode()))
 
+        User user =  userService.getUserById(id);
+        if (user != null && StringUtils.equals(twoFactorDTO.getCode(), user.getCode())) {
+            List<String> roles = user.getRoles().stream()
+                    .map(Role::getName) // Ajusta según tu entidad User/Role
+                    .toList();
+
+
+            String tokenRenew = jwtUtil.generateToken(user.getUsername(), roles, id, false);
+
+
+            userService.clear2FactorCode(id);
+
+
+            return ResponseEntity.ok(new AuthResponseDTO(tokenRenew, "Autenticación exitosa", false));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new AuthResponseDTO(null, "El código enviado no es correcto.", false));
     }
+
 
 
 
